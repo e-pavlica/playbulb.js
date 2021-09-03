@@ -3,9 +3,8 @@
 // jshint esversion: 6, node: true
 'use strict';
 
-const { promisify } = require('util');
 const commandLineArgs = require('command-line-args');
-const noble = require('@abandonware/noble');
+const noble           = require('@abandonware/noble');
 
 const optDefinitions = [
   { name: 'color',   type: String, alias: 'c' },
@@ -18,11 +17,11 @@ const COLOR_REGEXP = /^([0-9a-fA-F]{2}){4}$/;
 const PLAYBULB_SERVICE_UUIDS = ['ff08'];
 const PLAYBULB_CHARACTERISTIC_UUIDS = ['fffc', 'fffb'];
 const COLORS = {
-  red: Buffer.from('00ff0000', 'hex'),
-  green: Buffer.from('0000ff00', 'hex'),
-  blue: Buffer.from('000000ff', 'hex'),
+  red:    Buffer.from('00ff0000', 'hex'),
+  green:  Buffer.from('0000ff00', 'hex'),
+  blue:   Buffer.from('000000ff', 'hex'),
   purple: Buffer.from('00330066', 'hex'),
-  off: Buffer.from('00000000', 'hex'),
+  off:    Buffer.from('00000000', 'hex'),
 };
 
 let colorOpt = getColorOpt();
@@ -32,7 +31,7 @@ function getColorOpt() {
   let arg = options.color;
 
   if (COLOR_REGEXP.test(arg)) {
-    return new Buffer(arg, 'hex');
+    return Buffer.from(arg, 'hex');
   } else if (COLORS.hasOwnProperty(arg)) {
     return COLORS[arg];
   } else {
@@ -41,35 +40,36 @@ function getColorOpt() {
   }
 }
 
-async function run () {
+function run () {
   let timeout = setTimeout(() => {
     console.warn('Timed out finding the Playbulb.');
     process.exit(2);
-  }, 2000);
+  }, 5000);
 
-  noble.on('discover', (peripheral) => {
+  noble.on('discover', async (peripheral) => {
     if (!/PLAYBULB/.test(peripheral.advertisement.localName)) { return; }
     noble.stopScanning();
     clearTimeout(timeout);
 
-    switch (options.command) {
-      case 'change':
-        getColorCharacteristic(peripheral).then((characteristic) => {
-          changeDeviceColor(characteristic, colorOpt).then(() => { process.exit(0); }, (err) => { process.exit(1); });
-        }, (err) => {
-          console.warn(err);
-        });
-        break;
+    let characteristic;
+    try {
+      switch (options.command) {
+        case 'change':
+          characteristic = await getColorCharacteristic(peripheral);
+          await changeDeviceColor(characteristic, colorOpt)
+          return;
 
-      case 'blink':
-        getColorCharacteristic(peripheral).then((characteristic) => {
-          blinkDevice(characteristic, colorOpt).then(() => { process.exit(0); }, (err) => {  process.exit(1); });
-        }, (err) => { console.warn(err); });
-        break;
+        case 'blink':
+          characteristic = await getColorCharacteristic(peripheral);
+          await blinkDevice(characteristic, colorOpt);
+          return;
 
-      default:
-        console.warn('Usage: playbulb [command] [options] \n command is one of: \n  - change\n  - blink');
-        process.exit(1);
+        default:
+          throw('Usage: playbulb [command] [options] \n command is one of: \n  - change\n  - blink');
+      }
+    } catch (err) {
+      console.warn('Error occurred:', err);
+      process.exit(1);
     }
   });
 

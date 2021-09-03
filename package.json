@@ -11,6 +11,5 @@
   "dependencies": {
     "@abandonware/noble": "^1.9.2-5",
     "command-line-args": "^4.0.1"
-  },
-  "devDependencies": {}
+  }
 }

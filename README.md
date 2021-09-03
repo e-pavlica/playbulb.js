@@ -15,6 +15,14 @@ on your system.
 - `npm install`
 - (optional) add playbulb.js to you PATH
 
+### MacOS
+
+On newer versions of MacOS, you need to grant your terminal application
+access to the bluetooth stack:
+
+To enable bluetooth, go to "System Preferences" —> "Security & Privacy" —>
+"Bluetooth" -> Add your terminal into allowed apps.
+
 ## Usage
 
 ### Change bulb color
