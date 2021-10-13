@@ -57,12 +57,12 @@ function run () {
         case 'change':
           characteristic = await getColorCharacteristic(peripheral);
           await changeDeviceColor(characteristic, colorOpt)
-          return;
+          process.exit(0);
 
         case 'blink':
           characteristic = await getColorCharacteristic(peripheral);
           await blinkDevice(characteristic, colorOpt);
-          return;
+          process.exit(0);
 
         default:
           throw('Usage: playbulb [command] [options] \n command is one of: \n  - change\n  - blink');
